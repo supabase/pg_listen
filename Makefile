@@ -7,4 +7,4 @@ clean:
 	rm pg_listen
 
 kps: pg_listen.c
-        cc -Wall -Wextra -L/usr/lib/x86_64-linux-gnu -I/usr/include/postgresql pg_listen.c -o pg_listen -lpq
+	cc -Wall -Wextra -L/usr/lib/x86_64-linux-gnu -I/usr/include/postgresql pg_listen.c -o pg_listen -lpq
