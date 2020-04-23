@@ -29,6 +29,10 @@ NOTIFY foo, E'hi\n';
 
 ### Building
 
+For Supabase/KPS on Ubuntu use `make kps`
+
+For everything else use:
+
 Just clone the repo and run `make`. The makefile is compatible with BSD and GNU
 Make and requires only that libpq be installed on the system.
 
