@@ -1,0 +1,67 @@
+name: Build and Release on Push to Master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+
+    outputs:
+      status: ${{ steps.pre-release.outputs.release != steps.post-release.outputs.release }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - id: pre-release
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          owner: supabase
+          repo: gotrue
+          excludes: prerelease, draft
+
+      - name: Release on GitHub
+        id: github-release
+        run: npx semantic-release -p        \
+          @semantic-release/commit-analyzer \
+          @semantic-release/github         \
+          @semantic-release/release-notes-generator
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: post-release
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          owner: supabase
+          repo: pg_listen
+          excludes: prerelease, draft
+
+  deploy:
+    needs: release
+    runs-on: ubuntu-18.04
+    if: success() && needs.release.outputs.status == 'true'
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install libpq
+        run: sudo apt-get install build-essential libpq-dev
+
+      - run: make kps
+
+      - id: releases
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          owner: supabase
+          repo: pg_listen
+          excludes: prerelease, draft
+
+      - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}.tar.gz pg_listen
+
+      - uses: AButler/upload-release-assets@v2.0
+        with:
+          files: 'pg_listen-${{ steps.releases.outputs.release }}.tar.gz'
+          release-tag: ${{ steps.releases.outputs.release }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
