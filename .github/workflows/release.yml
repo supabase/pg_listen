@@ -19,7 +19,7 @@ jobs:
         uses: pozetroninc/github-action-get-latest-release@master
         with:
           owner: supabase
-          repo: gotrue
+          repo: pg_listen
           excludes: prerelease, draft
 
       - name: Release on GitHub
