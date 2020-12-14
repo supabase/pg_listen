@@ -42,4 +42,4 @@ If you installed PostgreSQL on Mac using homebrew or Macports, note that
 pkg-config is not installed by default and needs to be installed by running
 `brew install pkg-config` prior to running `make`. Additionally you may need to
 update `$PKG_CONFIG_PATH` and add the directory containing `libpq.pc` for your
-system.
+system. 
