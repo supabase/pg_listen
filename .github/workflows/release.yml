@@ -66,10 +66,12 @@ jobs:
           repo: pg_listen
           excludes: prerelease, draft
 
-      - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}.tar.gz pg_listen pg_listen-arm64
+      - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}-x86.tar.gz pg_listen
+      - run: mv pg_listen-arm64 pg_listen
+      - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}-arm64.tar.gz pg_listen
 
       - uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'pg_listen-${{ steps.releases.outputs.release }}.tar.gz'
+          files: 'pg_listen-${{ steps.releases.outputs.release }}*.tar.gz'
           release-tag: ${{ steps.releases.outputs.release }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
