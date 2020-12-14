@@ -7,7 +7,6 @@ on:
 
 jobs:
   release:
-
     outputs:
       status: ${{ steps.pre-release.outputs.release != steps.post-release.outputs.release }}
 
@@ -46,9 +45,19 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: install libpq
-        run: sudo apt-get install build-essential libpq-dev
+        run: sudo apt-get -y install libpq-dev
+      - run: make pg_listen
 
-      - run: make kps
+      - uses: uraimo/run-on-arch-action@v2.0.5
+        name: Build pg-listen for aarch64
+        id: runcmd
+        with:
+          arch: aarch64
+          distro: ubuntu18.04
+
+          run: |
+            apt update && apt -y install libpq-dev build-essential
+            make pg_listen-arm64
 
       - id: releases
         uses: pozetroninc/github-action-get-latest-release@master
@@ -57,11 +66,10 @@ jobs:
           repo: pg_listen
           excludes: prerelease, draft
 
-      - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}.tar.gz pg_listen
+      - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}.tar.gz pg_listen pg_listen-arm64
 
       - uses: AButler/upload-release-assets@v2.0
         with:
           files: 'pg_listen-${{ steps.releases.outputs.release }}.tar.gz'
           release-tag: ${{ steps.releases.outputs.release }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          
