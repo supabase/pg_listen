@@ -41,6 +41,8 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: compute version string
         run: echo "GIT_TAG=`echo $(git describe --tags --always --dirty --first-parent)`" >> $GITHUB_ENV
