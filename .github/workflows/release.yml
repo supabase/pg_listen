@@ -37,6 +37,30 @@ jobs:
           repo: pg_listen
           excludes: prerelease, draft
 
+  deploy-dev:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: compute version string
+        run: echo "GIT_TAG=`echo $(git describe --tags --always --dirty --first-parent)`" >> $GITHUB_ENV
+
+      - name: Login to ECR Dev account
+        uses: docker/login-action@v1
+        with:
+          registry: 436098097459.dkr.ecr.ap-southeast-1.amazonaws.com
+          username: ${{ secrets.AWS_ACCESS_ID }}
+          password: ${{ secrets.AWS_ACCESS_KEY }}
+
+      - name: Upload build to ECR
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            436098097459.dkr.ecr.ap-southeast-1.amazonaws.com/pg_listen:${{ env.GIT_TAG }}
+
   deploy:
     needs: release
     runs-on: ubuntu-18.04
