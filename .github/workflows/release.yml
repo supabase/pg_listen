@@ -3,39 +3,39 @@ name: Build and Release on Push to Master
 on:
   push:
     branches:
-      - master
+      - da/fix-push
 
 jobs:
-  release:
-    outputs:
-      status: ${{ steps.pre-release.outputs.release != steps.post-release.outputs.release }}
+  # release:
+  #   outputs:
+  #     status: ${{ steps.pre-release.outputs.release != steps.post-release.outputs.release }}
 
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
+  #   runs-on: ubuntu-18.04
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - id: pre-release
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          owner: supabase
-          repo: pg_listen
-          excludes: prerelease, draft
+  #     - id: pre-release
+  #       uses: pozetroninc/github-action-get-latest-release@master
+  #       with:
+  #         owner: supabase
+  #         repo: pg_listen
+  #         excludes: prerelease, draft
 
-      - name: Release on GitHub
-        id: github-release
-        run: npx semantic-release -p        \
-          @semantic-release/commit-analyzer \
-          @semantic-release/github         \
-          @semantic-release/release-notes-generator
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Release on GitHub
+  #       id: github-release
+  #       run: npx semantic-release -p        \
+  #         @semantic-release/commit-analyzer \
+  #         @semantic-release/github         \
+  #         @semantic-release/release-notes-generator
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - id: post-release
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          owner: supabase
-          repo: pg_listen
-          excludes: prerelease, draft
+  #     - id: post-release
+  #       uses: pozetroninc/github-action-get-latest-release@master
+  #       with:
+  #         owner: supabase
+  #         repo: pg_listen
+  #         excludes: prerelease, draft
 
   deploy-dev:
     runs-on: ubuntu-18.04
@@ -63,41 +63,41 @@ jobs:
           tags: |
             436098097459.dkr.ecr.ap-southeast-1.amazonaws.com/pg_listen:${{ env.GIT_TAG }}
 
-  deploy:
-    needs: release
-    runs-on: ubuntu-18.04
-    if: success() && needs.release.outputs.status == 'true'
-    steps:
-      - uses: actions/checkout@v2
+  # deploy:
+  #   needs: release
+  #   runs-on: ubuntu-18.04
+  #   if: success() && needs.release.outputs.status == 'true'
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: install libpq
-        run: sudo apt-get -y install libpq-dev
-      - run: make pg_listen
+  #     - name: install libpq
+  #       run: sudo apt-get -y install libpq-dev
+  #     - run: make pg_listen
 
-      - uses: uraimo/run-on-arch-action@v2.0.5
-        name: Build pg-listen for aarch64
-        id: runcmd
-        with:
-          arch: aarch64
-          distro: ubuntu18.04
+  #     - uses: uraimo/run-on-arch-action@v2.0.5
+  #       name: Build pg-listen for aarch64
+  #       id: runcmd
+  #       with:
+  #         arch: aarch64
+  #         distro: ubuntu18.04
 
-          run: |
-            apt update && apt -y install libpq-dev build-essential
-            make pg_listen-arm64
+  #         run: |
+  #           apt update && apt -y install libpq-dev build-essential
+  #           make pg_listen-arm64
 
-      - id: releases
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          owner: supabase
-          repo: pg_listen
-          excludes: prerelease, draft
+  #     - id: releases
+  #       uses: pozetroninc/github-action-get-latest-release@master
+  #       with:
+  #         owner: supabase
+  #         repo: pg_listen
+  #         excludes: prerelease, draft
 
-      - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}-x86.tar.gz pg_listen
-      - run: mv pg_listen-arm64 pg_listen
-      - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}-arm64.tar.gz pg_listen
+  #     - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}-x86.tar.gz pg_listen
+  #     - run: mv pg_listen-arm64 pg_listen
+  #     - run: tar -czvf pg_listen-${{ steps.releases.outputs.release }}-arm64.tar.gz pg_listen
 
-      - uses: AButler/upload-release-assets@v2.0
-        with:
-          files: 'pg_listen-${{ steps.releases.outputs.release }}*.tar.gz'
-          release-tag: ${{ steps.releases.outputs.release }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+  #     - uses: AButler/upload-release-assets@v2.0
+  #       with:
+  #         files: 'pg_listen-${{ steps.releases.outputs.release }}*.tar.gz'
+  #         release-tag: ${{ steps.releases.outputs.release }}
+  #         repo-token: ${{ secrets.GITHUB_TOKEN }}
