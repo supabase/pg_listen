@@ -45,6 +45,8 @@ jobs:
       - name: compute version string
         run: echo "GIT_TAG=`echo $(git describe --tags --always --dirty --first-parent)`" >> $GITHUB_ENV
 
+      - uses: docker/setup-buildx-action@v1
+
       - name: Login to ECR Dev account
         uses: docker/login-action@v1
         with:
